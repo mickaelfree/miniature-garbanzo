@@ -37,11 +37,13 @@ import {
   AUTO_SELL_DELAY,
   CHECK_IF_MINT_IS_RENOUNCED,
   CHECK_IF_FREEZEAUTHORITY_IS_RENOUNCED,
+  CHECK_IF_METADATA_IS_MUTABLE,
   COMMITMENT_LEVEL,
   LOG_LEVEL,
   MAX_SELL_RETRIES,
   NETWORK,
   PRIVATE_KEY,
+  HELIUS_KEY,
   QUOTE_AMOUNT,
   QUOTE_MINT,
   RPC_ENDPOINT,
@@ -50,6 +52,7 @@ import {
   USE_SNIPE_LIST,
   MIN_POOL_SIZE,
 } from './constants';
+
 
 const solanaConnection = new Connection(RPC_ENDPOINT, {
   wsEndpoint: RPC_WEBSOCKET_ENDPOINT,
@@ -190,11 +193,52 @@ export async function processRaydiumPool(id: PublicKey, poolState: LiquidityStat
       return;
     }
   }
+  if (CHECK_IF_METADATA_IS_MUTABLE) {
+    const isMutable = await checkMetadataIsMutable(poolState.baseMint);
+    console.log('fonction',isMutable)
+
+    if (isMutable !== false) {
+      logger.warn({ mint: poolState.baseMint }, 'Skipping, owner can mutable metadata !');
+      return;
+    }
+  }
 
 
   await buy(id, poolState);
 }
 
+export async function checkMetadataIsMutable(vault: PublicKey): Promise<boolean | undefined> {
+const url: string = `https://api.helius.xyz/v0/token-metadata?api-key=${HELIUS_KEY}`;
+const nftAddresses: string[] = [vault.toString()] 
+
+  try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mintAccounts: nftAddresses,
+          includeOffChain: false,
+          disableCache: false,
+        }),
+      });
+      const data = await response.json();
+      console.log(data)
+   for (const item of data) {
+      if (item.onChainMetadata && item.onChainMetadata.metadata && item.onChainMetadata.metadata.isMutable !== undefined) {
+        return item.onChainMetadata.metadata.isMutable;
+      }
+    }
+    
+    // Si nous n'avons pas trouvé d'objet correspondant ou si 'isMutable' n'est pas défini,
+    // on retourne 'undefined' pour indiquer l'absence de résultat définitif.
+    return undefined;
+
+  }  catch (e) {
+    logger.debug(e);
+    logger.error({ mint: vault }, `Failed to check checking token metadata`);
+    return undefined
+  }
+}
 export async function checkFreezeAuthority(vault: PublicKey): Promise<boolean | undefined> {
   try {
     let { data } = (await solanaConnection.getAccountInfo(vault)) || {};

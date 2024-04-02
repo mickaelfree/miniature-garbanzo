@@ -8,6 +8,7 @@ export const RPC_WEBSOCKET_ENDPOINT = retrieveEnvVariable('RPC_WEBSOCKET_ENDPOIN
 export const LOG_LEVEL = retrieveEnvVariable('LOG_LEVEL', logger);
 export const CHECK_IF_MINT_IS_RENOUNCED = retrieveEnvVariable('CHECK_IF_MINT_IS_RENOUNCED', logger) === 'true';
 export const CHECK_IF_FREEZEAUTHORITY_IS_RENOUNCED = retrieveEnvVariable('CHECK_IF_FREEZEAUTHORITY_IS_RENOUNCED', logger) === 'true';
+export const CHECK_IF_METADATA_IS_MUTABLE = retrieveEnvVariable('CHECK_IF_METADATA_IS_MUTABLE', logger) === 'true';
 export const USE_SNIPE_LIST = retrieveEnvVariable('USE_SNIPE_LIST', logger) === 'true';
 export const SNIPE_LIST_REFRESH_INTERVAL = Number(retrieveEnvVariable('SNIPE_LIST_REFRESH_INTERVAL', logger));
 export const AUTO_SELL = retrieveEnvVariable('AUTO_SELL', logger) === 'true';
@@ -17,4 +18,4 @@ export const PRIVATE_KEY = retrieveEnvVariable('PRIVATE_KEY', logger);
 export const QUOTE_MINT = retrieveEnvVariable('QUOTE_MINT', logger);
 export const QUOTE_AMOUNT = retrieveEnvVariable('QUOTE_AMOUNT', logger);
 export const MIN_POOL_SIZE = retrieveEnvVariable('MIN_POOL_SIZE', logger);
-
+export const HELIUS_KEY = retrieveEnvVariable('HELIUS_KEY', logger);
