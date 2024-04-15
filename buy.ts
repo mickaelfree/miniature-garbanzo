@@ -9,6 +9,7 @@ import {
   Token,
   TokenAmount,
 } from '@raydium-io/raydium-sdk';
+import BN from 'bn.js'
 import {
   AccountLayout,
   createAssociatedTokenAccountIdempotentInstruction,
@@ -38,12 +39,14 @@ import {
   CHECK_IF_MINT_IS_RENOUNCED,
   CHECK_IF_FREEZEAUTHORITY_IS_RENOUNCED,
   CHECK_IF_METADATA_IS_MUTABLE,
+  CHECK_IF_TOKEN_SECURITY,
   COMMITMENT_LEVEL,
   LOG_LEVEL,
   MAX_SELL_RETRIES,
   NETWORK,
   PRIVATE_KEY,
   HELIUS_KEY,
+  BIRD_KEY,
   QUOTE_AMOUNT,
   QUOTE_MINT,
   RPC_ENDPOINT,
@@ -195,19 +198,70 @@ export async function processRaydiumPool(id: PublicKey, poolState: LiquidityStat
   }
   if (CHECK_IF_METADATA_IS_MUTABLE) {
     const isMutable = await checkMetadataIsMutable(poolState.baseMint);
-    console.log('fonction',isMutable)
-
     if (isMutable !== false) {
       logger.warn({ mint: poolState.baseMint }, 'Skipping, owner can mutable metadata !');
       return;
     }
   }
 
+  if (CHECK_IF_TOKEN_SECURITY) {
+    const isSecurity = await checkTokenSecurity(poolState.baseMint);
+    console.log('la fonction security retourne :',isSecurity)
+
+    if (isSecurity !== true) {
+      logger.warn({ mint: poolState.baseMint }, 'Skipping, is not secure !');
+      return;
+    }
+  }
 
   await buy(id, poolState);
 }
+export async function checkTokenSecurity(vault: PublicKey): Promise<boolean | undefined> {
+
+const nftAddresses: string[] = [vault.toString()] 
+const url: string = `https://public-api.birdeye.so/defi/token_security?address=${nftAddresses}`;
+
+  try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'x-chain':'solana','X-API-KEY': BIRD_KEY },
+      });
+
+      const result = await response.json();
+      const data = result.data;
+
+      if (data.mutableMetadata==true){
+      console.log("mutableMetadata :",data.mutableMetadata)
+      return false 
+      }
+      console.log("mutableMetadata :",data.mutableMetadata)
+      if (data.freezeable==true){
+      console.log("freezeable :",data.freezeable)
+      return false  
+      }
+      console.log("freezeable :",data.freezeable)
+      if (data.metaplexUpdateAuthorityPercent >= 0.01){
+      console.log("metaplexUpdateAuthorityPercent ok il est radin:",data.metaplexUpdateAuthorityPercent)
+      return false
+      }
+      console.log("metaplexUpdateAuthorityPercent :",data.metaplexUpdateAuthorityPercent)
+
+
+      
+    
+    // Si nous n'avons pas trouvé d'objet correspondant ou si 'isMutable' n'est pas défini,
+    // on retourne 'undefined' pour indiquer l'absence de résultat définitif.
+    return true;
+
+  }  catch (e) {
+    logger.debug(e);
+    logger.error({ mint: vault }, `Failed to check checking token metadata`);
+    return false
+  }
+}
 
 export async function checkMetadataIsMutable(vault: PublicKey): Promise<boolean | undefined> {
+
 const url: string = `https://api.helius.xyz/v0/token-metadata?api-key=${HELIUS_KEY}`;
 const nftAddresses: string[] = [vault.toString()] 
 
@@ -222,7 +276,6 @@ const nftAddresses: string[] = [vault.toString()]
         }),
       });
       const data = await response.json();
-      console.log(data)
    for (const item of data) {
       if (item.onChainMetadata && item.onChainMetadata.metadata && item.onChainMetadata.metadata.isMutable !== undefined) {
         return item.onChainMetadata.metadata.isMutable;
@@ -360,9 +413,62 @@ async function buy(accountId: PublicKey, accountData: LiquidityStateV4): Promise
   }
 }
 
-async function sell(accountId: PublicKey, mint: PublicKey, amount: BigNumberish): Promise<void> {
+ export async function getCurrentPrice(vault:PublicKey): Promise<number | undefined>
+{
+const addressSol = "So11111111111111111111111111111111111111112"
+const nftAddresses: string[] = [vault.toString()] 
+const urltoken: string = `https://public-api.birdeye.so/defi/price?address=${nftAddresses}`;
+const urlsol: string = `https://public-api.birdeye.so/defi/price?address=${addressSol}`;
+
+  async function getTokenPrice(url:string): Promise<number | undefined>{
+  try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'x-chain':'solana','X-API-KEY': BIRD_KEY },
+      });
+
+      const result = await response.json();
+      const data = result.data;
+      return data.value
+    }catch (e) {
+    logger.debug(e);
+    logger.error({ mint: vault }, `Failed to check token price`);
+    return undefined 
+  }
+  }
+  const solValuePromise = getTokenPrice(urlsol);
+  await new Promise (resolve => setTimeout(resolve,5000))
+  const tokenValuePromise = getTokenPrice(urltoken);
+
+  const solValue = await solValuePromise;
+  const tokenValue = await tokenValuePromise;
+
+  if (solValue === undefined || tokenValue === undefined) {
+    return undefined;  // Returns undefined if either value is undefined
+  }
+
+  const result = tokenValue / solValue;
+  return result;
+  
+}
+
+
+async function sell( accountId: PublicKey,mint: PublicKey, amount: BigNumberish): Promise<void> {
   let sold = false;
   let retries = 0;
+  let remainingAmount = amount; 
+  let totalProfit = 0;
+  let totalLoss = 0 ;
+  // Définir les seuils de vente et pourcentages de sortie
+  const exitLevels = [
+    { threshold: 1.1, percentage: 10 },  // Seuil 1: +10% de gain, vendre 10%
+    { threshold: 1.2, percentage: 15 },  // Seuil 2: +20% de gain, vendre 15% 
+    { threshold: 1.5, percentage: 25 },  // Seuil 3: +50% de gain, vendre 25%
+    { threshold: 2.0, percentage: 50 }   // Seuil 4: +100% de gain, vendre 50% du reste
+  ];
+
+  // Récupérer le prix d'achat initial
+  const purchasePrice = Number(QUOTE_AMOUNT); // à remplacer par la vraie valeur
 
   if (AUTO_SELL_DELAY > 0) {
     await new Promise((resolve) => setTimeout(resolve, AUTO_SELL_DELAY));
@@ -380,16 +486,22 @@ async function sell(accountId: PublicKey, mint: PublicKey, amount: BigNumberish)
         logger.warn({ mint }, 'No pool keys found');
         return;
       }
+    const currentPrice = await getCurrentPrice(mint);
+    if (currentPrice === undefined) {
+      console.error('Current price could not be fetched.');
+      return;
+    }
 
-      if (amount === 0) {
-        logger.info(
-          {
-            mint: tokenAccount.mint,
-          },
-          `Empty balance, can't sell`,
-        );
-        return;
-      }
+    const currentGain = (currentPrice - purchasePrice) / purchasePrice;
+    console.log(`Current gain: ${(currentGain * 100).toFixed(2)}% mint :${mint}`);  // Log the current gain percentage
+    
+    for (const level of exitLevels) {
+  if (currentGain >= level.threshold) {
+    const amountAsNumber = new BN(amount.toString()).toNumber();
+    const quantityToSell = Math.floor(amountAsNumber * level.percentage / 100);
+    
+    const remainingAmountAsNumber = new BN(remainingAmount.toString()).toNumber();
+    remainingAmount = new BN(remainingAmountAsNumber - quantityToSell);
 
       const { innerTransaction } = Liquidity.makeSwapFixedInInstruction(
         {
@@ -444,13 +556,28 @@ async function sell(accountId: PublicKey, mint: PublicKey, amount: BigNumberish)
           mint,
           signature,
           url: `https://solscan.io/tx/${signature}?cluster=${NETWORK}`,
+          sell: `Sold ${quantityToSell} tokens at exit level ${level.threshold} (+${level.threshold*100-100}%)`,
         },
         `Confirmed sell tx`,
       );
+      if (currentGain >= 0) {
+        totalProfit += quantityToSell * currentPrice;
+      } else {
+      totalLoss += quantityToSell * purchasePrice;
+      }
+      const profitLossRatio = totalProfit / totalLoss;
+      console.log(`Profit/Loss Ratio: ${profitLossRatio.toFixed(2)}`); 
+
+          break;
+        }
+      }
+      if (remainingAmount ===0)
+      {
       sold = true;
+      }
     } catch (e: any) {
       // wait for a bit before retrying
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
       retries++;
       logger.debug(e);
       logger.error({ mint }, `Failed to sell token, retry: ${retries}/${MAX_SELL_RETRIES}`);
@@ -538,9 +665,9 @@ const runListener = async () => {
           bytes: quoteToken.mint.toBase58(),
         },
       },
-    ],
-  );
-
+    ]
+  )
+  
   if (AUTO_SELL) {
     const walletSubscriptionId = solanaConnection.onProgramAccountChange(
       TOKEN_PROGRAM_ID,
@@ -566,9 +693,9 @@ const runListener = async () => {
         },
       ],
     );
-
     logger.info(`Listening for wallet changes: ${walletSubscriptionId}`);
   }
+
 
   logger.info(`Listening for raydium changes: ${raydiumSubscriptionId}`);
   logger.info(`Listening for open book changes: ${openBookSubscriptionId}`);
