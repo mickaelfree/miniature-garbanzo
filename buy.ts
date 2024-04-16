@@ -230,7 +230,7 @@ const url: string = `https://public-api.birdeye.so/defi/token_security?address=$
       const result = await response.json();
       const data = result.data;
 
-      if (data.mutableMetadata==true){
+      if (data.mutableMetadata!==false){
       console.log("mutableMetadata :",data.mutableMetadata)
       return false 
       }
@@ -461,10 +461,10 @@ async function sell( accountId: PublicKey,mint: PublicKey, amount: BigNumberish)
   let totalLoss = 0 ;
   // Définir les seuils de vente et pourcentages de sortie
   const exitLevels = [
-    { threshold: 1.1, percentage: 10 },  // Seuil 1: +10% de gain, vendre 10%
-    { threshold: 1.2, percentage: 15 },  // Seuil 2: +20% de gain, vendre 15% 
-    { threshold: 1.5, percentage: 25 },  // Seuil 3: +50% de gain, vendre 25%
-    { threshold: 2.0, percentage: 50 }   // Seuil 4: +100% de gain, vendre 50% du reste
+    { threshold: 1.05, percentage: 10 },  // Seuil 1: +10% de gain, vendre 10%
+   // { threshold: 1.02, percentage: 15 },  // Seuil 2: +20% de gain, vendre 15% 
+   // { threshold: 1.05, percentage: 25 },  // Seuil 3: +50% de gain, vendre 25%
+   // { threshold: 1.10, percentage: 50 }   // Seuil 4: +100% de gain, vendre 50% du reste
   ];
 
   // Récupérer le prix d'achat initial
@@ -492,13 +492,14 @@ async function sell( accountId: PublicKey,mint: PublicKey, amount: BigNumberish)
       return;
     }
 
-    const currentGain = (currentPrice - purchasePrice) / purchasePrice;
-    console.log(`Current gain: ${(currentGain * 100).toFixed(2)}% mint :${mint}`);  // Log the current gain percentage
+    const currentGain = (currentPrice + purchasePrice) / purchasePrice;
+    console.log(`Current gain: ${(currentGain)}% mint :${mint}`);  // Log the current gain percentage
     
     for (const level of exitLevels) {
   if (currentGain >= level.threshold) {
     const amountAsNumber = new BN(amount.toString()).toNumber();
-    const quantityToSell = Math.floor(amountAsNumber * level.percentage / 100);
+    console.log(amountAsNumber)
+    const quantityToSell = Math.floor(amountAsNumber * (level.percentage / 100));
     
     const remainingAmountAsNumber = new BN(remainingAmount.toString()).toNumber();
     remainingAmount = new BN(remainingAmountAsNumber - quantityToSell);
