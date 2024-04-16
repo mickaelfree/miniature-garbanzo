@@ -15,27 +15,23 @@ var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/
 var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 var _eventemitter = require("eventemitter3");
 var _utils = require("./utils");
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _callSuper(t, o, e) { return o = (0, _getPrototypeOf2["default"])(o), (0, _possibleConstructorReturn2["default"])(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], (0, _getPrototypeOf2["default"])(t).constructor) : o.apply(t, e)); }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
 var __rest = void 0 && (void 0).__rest || function (s, e) {
   var t = {};
-  for (var p in s) {
-    if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) t[p] = s[p];
-  }
+  for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) t[p] = s[p];
   if (s != null && typeof Object.getOwnPropertySymbols === "function") for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
     if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) t[p[i]] = s[p[i]];
   }
   return t;
 };
 // @ts-ignore
-var CommonClient = /*#__PURE__*/function (_EventEmitter) {
-  (0, _inherits2["default"])(CommonClient, _EventEmitter);
-  var _super = _createSuper(CommonClient);
+var CommonClient = exports["default"] = /*#__PURE__*/function (_EventEmitter) {
   /**
    * Instantiate a Client class.
    * @constructor
@@ -62,7 +58,7 @@ var CommonClient = /*#__PURE__*/function (_EventEmitter) {
       _a$max_reconnects = _a.max_reconnects,
       max_reconnects = _a$max_reconnects === void 0 ? 5 : _a$max_reconnects,
       rest_options = __rest(_a, ["autoconnect", "reconnect", "reconnect_interval", "max_reconnects"]);
-    _this = _super.call(this);
+    _this = _callSuper(this, CommonClient);
     _this.webSocketFactory = webSocketFactory;
     _this.queue = {};
     _this.rpc_id = 0;
@@ -92,7 +88,8 @@ var CommonClient = /*#__PURE__*/function (_EventEmitter) {
    * @method
    * @return {Undefined}
    */
-  (0, _createClass2["default"])(CommonClient, [{
+  (0, _inherits2["default"])(CommonClient, _EventEmitter);
+  return (0, _createClass2["default"])(CommonClient, [{
     key: "connect",
     value: function connect() {
       if (this.socket) return;
@@ -151,28 +148,26 @@ var CommonClient = /*#__PURE__*/function (_EventEmitter) {
      */
   }, {
     key: "login",
-    value: function () {
+    value: (function () {
       var _login = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(params) {
         var resp;
         return _regenerator["default"].wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                _context.next = 2;
-                return this.call("rpc.login", params);
-              case 2:
-                resp = _context.sent;
-                if (resp) {
-                  _context.next = 5;
-                  break;
-                }
-                throw new Error("authentication failed");
-              case 5:
-                return _context.abrupt("return", resp);
-              case 6:
-              case "end":
-                return _context.stop();
-            }
+          while (1) switch (_context.prev = _context.next) {
+            case 0:
+              _context.next = 2;
+              return this.call("rpc.login", params);
+            case 2:
+              resp = _context.sent;
+              if (resp) {
+                _context.next = 5;
+                break;
+              }
+              throw new Error("authentication failed");
+            case 5:
+              return _context.abrupt("return", resp);
+            case 6:
+            case "end":
+              return _context.stop();
           }
         }, _callee, this);
       }));
@@ -186,22 +181,21 @@ var CommonClient = /*#__PURE__*/function (_EventEmitter) {
      * @method
      * @return {Array}
      */
+    )
   }, {
     key: "listMethods",
-    value: function () {
+    value: (function () {
       var _listMethods = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2() {
         return _regenerator["default"].wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                _context2.next = 2;
-                return this.call("__listMethods");
-              case 2:
-                return _context2.abrupt("return", _context2.sent);
-              case 3:
-              case "end":
-                return _context2.stop();
-            }
+          while (1) switch (_context2.prev = _context2.next) {
+            case 0:
+              _context2.next = 2;
+              return this.call("__listMethods");
+            case 2:
+              return _context2.abrupt("return", _context2.sent);
+            case 3:
+            case "end":
+              return _context2.stop();
           }
         }, _callee2, this);
       }));
@@ -217,6 +211,7 @@ var CommonClient = /*#__PURE__*/function (_EventEmitter) {
      * @param {Object} params - optional method parameters
      * @return {Promise}
      */
+    )
   }, {
     key: "notify",
     value: function notify(method, params) {
@@ -243,29 +238,27 @@ var CommonClient = /*#__PURE__*/function (_EventEmitter) {
      */
   }, {
     key: "subscribe",
-    value: function () {
+    value: (function () {
       var _subscribe = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(event) {
         var result;
         return _regenerator["default"].wrap(function _callee3$(_context3) {
-          while (1) {
-            switch (_context3.prev = _context3.next) {
-              case 0:
-                if (typeof event === "string") event = [event];
-                _context3.next = 3;
-                return this.call("rpc.on", event);
-              case 3:
-                result = _context3.sent;
-                if (!(typeof event === "string" && result[event] !== "ok")) {
-                  _context3.next = 6;
-                  break;
-                }
-                throw new Error("Failed subscribing to an event '" + event + "' with: " + result[event]);
-              case 6:
-                return _context3.abrupt("return", result);
-              case 7:
-              case "end":
-                return _context3.stop();
-            }
+          while (1) switch (_context3.prev = _context3.next) {
+            case 0:
+              if (typeof event === "string") event = [event];
+              _context3.next = 3;
+              return this.call("rpc.on", event);
+            case 3:
+              result = _context3.sent;
+              if (!(typeof event === "string" && result[event] !== "ok")) {
+                _context3.next = 6;
+                break;
+              }
+              throw new Error("Failed subscribing to an event '" + event + "' with: " + result[event]);
+            case 6:
+              return _context3.abrupt("return", result);
+            case 7:
+            case "end":
+              return _context3.stop();
           }
         }, _callee3, this);
       }));
@@ -281,31 +274,30 @@ var CommonClient = /*#__PURE__*/function (_EventEmitter) {
      * @return {Undefined}
      * @throws {Error}
      */
+    )
   }, {
     key: "unsubscribe",
-    value: function () {
+    value: (function () {
       var _unsubscribe = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(event) {
         var result;
         return _regenerator["default"].wrap(function _callee4$(_context4) {
-          while (1) {
-            switch (_context4.prev = _context4.next) {
-              case 0:
-                if (typeof event === "string") event = [event];
-                _context4.next = 3;
-                return this.call("rpc.off", event);
-              case 3:
-                result = _context4.sent;
-                if (!(typeof event === "string" && result[event] !== "ok")) {
-                  _context4.next = 6;
-                  break;
-                }
-                throw new Error("Failed unsubscribing from an event with: " + result);
-              case 6:
-                return _context4.abrupt("return", result);
-              case 7:
-              case "end":
-                return _context4.stop();
-            }
+          while (1) switch (_context4.prev = _context4.next) {
+            case 0:
+              if (typeof event === "string") event = [event];
+              _context4.next = 3;
+              return this.call("rpc.off", event);
+            case 3:
+              result = _context4.sent;
+              if (!(typeof event === "string" && result[event] !== "ok")) {
+                _context4.next = 6;
+                break;
+              }
+              throw new Error("Failed unsubscribing from an event with: " + result);
+            case 6:
+              return _context4.abrupt("return", result);
+            case 7:
+            case "end":
+              return _context4.stop();
           }
         }, _callee4, this);
       }));
@@ -321,10 +313,44 @@ var CommonClient = /*#__PURE__*/function (_EventEmitter) {
      * @param {String} data - optional data to be sent before closing
      * @return {Undefined}
      */
+    )
   }, {
     key: "close",
     value: function close(code, data) {
       this.socket.close(code || 1000, data);
+    }
+    /**
+     * Enable / disable automatic reconnection.
+     * @method
+     * @param {Boolean} reconnect - enable / disable reconnection
+     * @return {Undefined}
+     */
+  }, {
+    key: "setAutoReconnect",
+    value: function setAutoReconnect(reconnect) {
+      this.reconnect = reconnect;
+    }
+    /**
+     * Set the interval between reconnection attempts.
+     * @method
+     * @param {Number} interval - reconnection interval in milliseconds
+     * @return {Undefined}
+     */
+  }, {
+    key: "setReconnectInterval",
+    value: function setReconnectInterval(interval) {
+      this.reconnect_interval = interval;
+    }
+    /**
+     * Set the maximum number of reconnection attempts.
+     * @method
+     * @param {Number} max_reconnects - maximum reconnection attempts
+     * @return {Undefined}
+     */
+  }, {
+    key: "setMaxReconnects",
+    value: function setMaxReconnects(max_reconnects) {
+      this.max_reconnects = max_reconnects;
     }
     /**
      * Connection/Message handler.
@@ -359,9 +385,7 @@ var CommonClient = /*#__PURE__*/function (_EventEmitter) {
           var args = [message.notification];
           if (message.params.constructor === Object) args.push(message.params);else
             // using for-loop instead of unshift/spread because performance is better
-            for (var i = 0; i < message.params.length; i++) {
-              args.push(message.params[i]);
-            }
+            for (var i = 0; i < message.params.length; i++) args.push(message.params[i]);
           // run as microtask so that pending queue messages are resolved first
           // eslint-disable-next-line prefer-spread
           return Promise.resolve().then(function () {
@@ -405,6 +429,4 @@ var CommonClient = /*#__PURE__*/function (_EventEmitter) {
       });
     }
   }]);
-  return CommonClient;
 }(_eventemitter.EventEmitter);
-exports["default"] = CommonClient;

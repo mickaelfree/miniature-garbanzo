@@ -11,15 +11,13 @@ Object.defineProperty(exports, "__esModule", {
 exports["default"] = _default;
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 var _eventemitter = require("eventemitter3");
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _callSuper(t, o, e) { return o = (0, _getPrototypeOf2["default"])(o), (0, _possibleConstructorReturn2["default"])(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], (0, _getPrototypeOf2["default"])(t).constructor) : o.apply(t, e)); }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
 var WebSocketBrowserImpl = /*#__PURE__*/function (_EventEmitter) {
-  (0, _inherits2["default"])(WebSocketBrowserImpl, _EventEmitter);
-  var _super = _createSuper(WebSocketBrowserImpl);
   /** Instantiate a WebSocket class
    * @constructor
    * @param {String} address - url to a websocket server
@@ -30,7 +28,7 @@ var WebSocketBrowserImpl = /*#__PURE__*/function (_EventEmitter) {
   function WebSocketBrowserImpl(address, options, protocols) {
     var _this;
     (0, _classCallCheck2["default"])(this, WebSocketBrowserImpl);
-    _this = _super.call(this);
+    _this = _callSuper(this, WebSocketBrowserImpl);
     _this.socket = new window.WebSocket(address, protocols);
     _this.socket.onopen = function () {
       return _this.emit("open");
@@ -54,7 +52,8 @@ var WebSocketBrowserImpl = /*#__PURE__*/function (_EventEmitter) {
    * @param {Function} callback - a callback called once the data is sent
    * @return {Undefined}
    */
-  (0, _createClass2["default"])(WebSocketBrowserImpl, [{
+  (0, _inherits2["default"])(WebSocketBrowserImpl, _EventEmitter);
+  return (0, _createClass2["default"])(WebSocketBrowserImpl, [{
     key: "send",
     value: function send(data, optionsOrCallback, callback) {
       var cb = callback || optionsOrCallback;
@@ -84,7 +83,6 @@ var WebSocketBrowserImpl = /*#__PURE__*/function (_EventEmitter) {
       this.socket.addEventListener(type, listener, options);
     }
   }]);
-  return WebSocketBrowserImpl;
 }(_eventemitter.EventEmitter);
 /**
  * factory method for common WebSocket instance

@@ -115,6 +115,27 @@ export default class CommonClient extends EventEmitter {
      */
     close(code?: number, data?: string): void;
     /**
+     * Enable / disable automatic reconnection.
+     * @method
+     * @param {Boolean} reconnect - enable / disable reconnection
+     * @return {Undefined}
+     */
+    setAutoReconnect(reconnect: boolean): void;
+    /**
+     * Set the interval between reconnection attempts.
+     * @method
+     * @param {Number} interval - reconnection interval in milliseconds
+     * @return {Undefined}
+     */
+    setReconnectInterval(interval: number): void;
+    /**
+     * Set the maximum number of reconnection attempts.
+     * @method
+     * @param {Number} max_reconnects - maximum reconnection attempts
+     * @return {Undefined}
+     */
+    setMaxReconnects(max_reconnects: number): void;
+    /**
      * Connection/Message handler.
      * @method
      * @private

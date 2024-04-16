@@ -1,7 +1,7 @@
 import NodeWebSocket from "ws";
-export declare type BrowserWebSocketType = InstanceType<typeof WebSocket>;
-export declare type NodeWebSocketType = InstanceType<typeof NodeWebSocket>;
-export declare type NodeWebSocketTypeOptions = NodeWebSocket.ClientOptions;
+export type BrowserWebSocketType = InstanceType<typeof WebSocket>;
+export type NodeWebSocketType = InstanceType<typeof NodeWebSocket>;
+export type NodeWebSocketTypeOptions = NodeWebSocket.ClientOptions;
 export interface IWSClientAdditionalOptions {
     autoconnect?: boolean;
     reconnect?: boolean;

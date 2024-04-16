@@ -9,11 +9,11 @@ exports.createError = createError;
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 var errors = new Map([[-32000, "Event not provided"], [-32600, "Invalid Request"], [-32601, "Method not found"], [-32602, "Invalid params"], [-32603, "Internal error"], [-32604, "Params not found"], [-32605, "Method forbidden"], [-32606, "Event forbidden"], [-32700, "Parse error"]]);
-var DefaultDataPack = /*#__PURE__*/function () {
+var DefaultDataPack = exports.DefaultDataPack = /*#__PURE__*/function () {
   function DefaultDataPack() {
     (0, _classCallCheck2["default"])(this, DefaultDataPack);
   }
-  (0, _createClass2["default"])(DefaultDataPack, [{
+  return (0, _createClass2["default"])(DefaultDataPack, [{
     key: "encode",
     value: function encode(value) {
       return JSON.stringify(value);
@@ -24,7 +24,6 @@ var DefaultDataPack = /*#__PURE__*/function () {
       return JSON.parse(value);
     }
   }]);
-  return DefaultDataPack;
 }();
 /**
  * Creates a JSON-RPC 2.0-compliant error.
@@ -32,7 +31,6 @@ var DefaultDataPack = /*#__PURE__*/function () {
  * @param {String} details - error details
  * @return {Object}
  */
-exports.DefaultDataPack = DefaultDataPack;
 function createError(code, details) {
   var error = {
     code: code,

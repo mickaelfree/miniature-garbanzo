@@ -183,6 +183,33 @@ export default class CommonClient extends EventEmitter {
         this.socket.close(code || 1000, data);
     }
     /**
+     * Enable / disable automatic reconnection.
+     * @method
+     * @param {Boolean} reconnect - enable / disable reconnection
+     * @return {Undefined}
+     */
+    setAutoReconnect(reconnect) {
+        this.reconnect = reconnect;
+    }
+    /**
+     * Set the interval between reconnection attempts.
+     * @method
+     * @param {Number} interval - reconnection interval in milliseconds
+     * @return {Undefined}
+     */
+    setReconnectInterval(interval) {
+        this.reconnect_interval = interval;
+    }
+    /**
+     * Set the maximum number of reconnection attempts.
+     * @method
+     * @param {Number} max_reconnects - maximum reconnection attempts
+     * @return {Undefined}
+     */
+    setMaxReconnects(max_reconnects) {
+        this.max_reconnects = max_reconnects;
+    }
+    /**
      * Connection/Message handler.
      * @method
      * @private

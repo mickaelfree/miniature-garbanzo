@@ -56,10 +56,17 @@ import {
   MIN_POOL_SIZE,
 } from './constants';
 
+let solanaConnection: Connection;
 
-const solanaConnection = new Connection(RPC_ENDPOINT, {
+try {
+  solanaConnection = new Connection(RPC_ENDPOINT, {
   wsEndpoint: RPC_WEBSOCKET_ENDPOINT,
 });
+
+} catch (error) {
+  logger.error("Erreur lors de la connexion à Solana :", error);
+  process.exit(1); // Arrêter le programme en cas d'échec de connexion
+}
 
 export interface MinimalTokenAccountData {
   mint: PublicKey;
@@ -241,7 +248,7 @@ const url: string = `https://public-api.birdeye.so/defi/token_security?address=$
       }
       console.log("freezeable :",data.freezeable)
       if (data.metaplexUpdateAuthorityPercent >= 0.01){
-      console.log("metaplexUpdateAuthorityPercent ok il est radin:",data.metaplexUpdateAuthorityPercent)
+      console.log("metaplexUpdateAuthorityPercent : ",data.metaplexUpdateAuthorityPercent)
       return false
       }
       console.log("metaplexUpdateAuthorityPercent :",data.metaplexUpdateAuthorityPercent)
@@ -437,7 +444,7 @@ const urlsol: string = `https://public-api.birdeye.so/defi/price?address=${addre
   }
   }
   const solValuePromise = getTokenPrice(urlsol);
-  await new Promise (resolve => setTimeout(resolve,5000))
+  await new Promise (resolve => setTimeout(resolve,15000))
   const tokenValuePromise = getTokenPrice(urltoken);
 
   const solValue = await solValuePromise;
@@ -461,7 +468,7 @@ async function sell( accountId: PublicKey,mint: PublicKey, amount: BigNumberish)
   let totalLoss = 0 ;
   // Définir les seuils de vente et pourcentages de sortie
   const exitLevels = [
-    { threshold: 1.05, percentage: 10 },  // Seuil 1: +10% de gain, vendre 10%
+    { threshold: 1.04, percentage: 10 },  // Seuil 1: +10% de gain, vendre 10%
    // { threshold: 1.02, percentage: 15 },  // Seuil 2: +20% de gain, vendre 15% 
    // { threshold: 1.05, percentage: 25 },  // Seuil 3: +50% de gain, vendre 25%
    // { threshold: 1.10, percentage: 50 }   // Seuil 4: +100% de gain, vendre 50% du reste
@@ -493,20 +500,15 @@ async function sell( accountId: PublicKey,mint: PublicKey, amount: BigNumberish)
     }
 
     const currentGain = (currentPrice + purchasePrice) / purchasePrice;
-    console.log(`Current gain: ${(currentGain)}% mint :${mint}`);  // Log the current gain percentage
+    console.log(`Current gain: ${(currentGain).toFixed(2)}% mint :${mint}`);  // Log the current gain percentage
     
     for (const level of exitLevels) {
   if (currentGain >= level.threshold) {
     const amountAsNumber = new BN(amount.toString()).toNumber();
-    console.log(`amountAsNumber :${amountAsNumber}`)
     const quantityToSell = Math.floor(amountAsNumber * (level.percentage / 100));
-    console.log(`level.percentage: ${level.percentage}`)
-    console.log(`level.percentage / 100 : ${level.percentage / 100}`)
-    console.log(`quantityToSell :${quantityToSell}`)
     
     const remainingAmountAsNumber = new BN(remainingAmount.toString()).toNumber();
     remainingAmount = new BN(remainingAmountAsNumber - quantityToSell);
-    console.log(`remainingAmount :${remainingAmount}`)
 
       const { innerTransaction } = Liquidity.makeSwapFixedInInstruction(
         {
