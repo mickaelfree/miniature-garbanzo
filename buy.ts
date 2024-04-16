@@ -498,11 +498,15 @@ async function sell( accountId: PublicKey,mint: PublicKey, amount: BigNumberish)
     for (const level of exitLevels) {
   if (currentGain >= level.threshold) {
     const amountAsNumber = new BN(amount.toString()).toNumber();
-    console.log(amountAsNumber)
+    console.log(`amountAsNumber :${amountAsNumber}`)
     const quantityToSell = Math.floor(amountAsNumber * (level.percentage / 100));
+    console.log(`level.percentage: ${level.percentage}`)
+    console.log(`level.percentage / 100 : ${level.percentage / 100}`)
+    console.log(`quantityToSell :${quantityToSell}`)
     
     const remainingAmountAsNumber = new BN(remainingAmount.toString()).toNumber();
     remainingAmount = new BN(remainingAmountAsNumber - quantityToSell);
+    console.log(`remainingAmount :${remainingAmount}`)
 
       const { innerTransaction } = Liquidity.makeSwapFixedInInstruction(
         {
