@@ -504,9 +504,6 @@ async function sell( accountId: PublicKey,mint: PublicKey, amount: BigNumberish)
 
     const currentGain = (currentPrice - purchasePrice) / purchasePrice;
     console.log(`Current gain: ${(currentGain * 100)}% mint : ${mint}`);  // Log the current gain percentage
-    console.log(currentPrice)
-    console.log(purchasePrice)
-    console.log(currentGain)
     
     for (const level of exitLevels) {
   if (currentGain >= level.threshold) {
