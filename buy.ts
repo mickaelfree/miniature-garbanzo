@@ -444,8 +444,8 @@ const urlsol: string = `https://public-api.birdeye.so/defi/price?address=${addre
   }
   }
   const solValuePromise = getTokenPrice(urlsol);
-  await new Promise (resolve => setTimeout(resolve,15000))
   const tokenValuePromise = getTokenPrice(urltoken);
+  await new Promise (resolve => setTimeout(resolve,15000))
 
   const solValue = await solValuePromise;
   const tokenValue = await tokenValuePromise;
@@ -464,6 +464,7 @@ async function sell( accountId: PublicKey,mint: PublicKey, amount: BigNumberish)
   let sold = false;
   let retries = 0;
   let remainingAmount = amount; 
+  console.log(amount)
   let totalProfit = 0;
   let totalLoss = 0 ;
   // Définir les seuils de vente et pourcentages de sortie
@@ -475,8 +476,10 @@ async function sell( accountId: PublicKey,mint: PublicKey, amount: BigNumberish)
   ];
 
   // Récupérer le prix d'achat initial
-  const purchasePrice = Number(QUOTE_AMOUNT); // à remplacer par la vraie valeur
+  const purchasePrice = Number(QUOTE_AMOUNT)/Number(amount); // à remplacer par la vraie valeur
 
+  console.log(Number(QUOTE_AMOUNT))
+  console.log(Number(amount))
   if (AUTO_SELL_DELAY > 0) {
     await new Promise((resolve) => setTimeout(resolve, AUTO_SELL_DELAY));
   }
@@ -499,8 +502,11 @@ async function sell( accountId: PublicKey,mint: PublicKey, amount: BigNumberish)
       return;
     }
 
-    const currentGain = (currentPrice + purchasePrice) / purchasePrice;
-    console.log(`Current gain: ${(currentGain).toFixed(2)}% mint :${mint}`);  // Log the current gain percentage
+    const currentGain = (currentPrice - purchasePrice) / purchasePrice;
+    console.log(`Current gain: ${(currentGain * 100)}% mint : ${mint}`);  // Log the current gain percentage
+    console.log(currentPrice)
+    console.log(purchasePrice)
+    console.log(currentGain)
     
     for (const level of exitLevels) {
   if (currentGain >= level.threshold) {
