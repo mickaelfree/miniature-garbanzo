@@ -237,21 +237,24 @@ const url: string = `https://public-api.birdeye.so/defi/token_security?address=$
       const result = await response.json();
       const data = result.data;
 
-      if (data.mutableMetadata!==false){
-      console.log("mutableMetadata :",data.mutableMetadata)
-      return false 
-      }
+      //if (data.mutableMetadata!==false){
+      //console.log("mutableMetadata :",data.mutableMetadata)
+      //return false 
+      //}
       console.log("mutableMetadata :",data.mutableMetadata)
       if (data.freezeable==true){
       console.log("freezeable :",data.freezeable)
       return false  
       }
-      console.log("freezeable :",data.freezeable)
-      if (data.metaplexUpdateAuthorityPercent >= 0.01){
-      console.log("metaplexUpdateAuthorityPercent : ",data.metaplexUpdateAuthorityPercent)
+      if (data.top10HolderPercent >= 0.91){
+      console.log("top10HolderPercent: ",data.top10HolderPercent)
       return false
-      }
-      console.log("metaplexUpdateAuthorityPercent :",data.metaplexUpdateAuthorityPercent)
+      }     console.log("freezeable :",data.freezeable)
+      //if (data.metaplexUpdateAuthorityPercent >= 0.01){
+      //console.log("metaplexUpdateAuthorityPercent : ",data.metaplexUpdateAuthorityPercent)
+      //return false
+      //}
+      //console.log("metaplexUpdateAuthorityPercent :",data.metaplexUpdateAuthorityPercent)
 
 
       
