@@ -85,6 +85,8 @@ let quoteTokenAssociatedAddress: PublicKey;
 let quoteAmount: TokenAmount;
 let quoteMinPoolSizeAmount: TokenAmount;
 
+let purchaseRecords:{[mint: string]: number[] } = {};
+
 let snipeList: string[] = [];
 
 async function init(): Promise<void> {
@@ -358,6 +360,19 @@ async function buy(accountId: PublicKey, accountData: LiquidityStateV4): Promise
     }
 
     tokenAccount.poolKeys = createPoolKeys(accountId, accountData, tokenAccount.market!);
+
+    const currentPurchasePrice = await getCurrentPrice(accountData.baseMint);
+      if (currentPurchasePrice === undefined) {
+        console.error('Purchase price could not be fetched.');
+        return;
+      }
+  // Storing both mint and purchase price
+  const mint = (accountData.baseMint).toString();  // Assuming baseMint is the mint address you're interested in
+  if (!purchaseRecords[mint]) {
+    purchaseRecords[mint] = [];
+  }
+  purchaseRecords[mint].push(currentPurchasePrice);
+
     const { innerTransaction } = Liquidity.makeSwapFixedInInstruction(
       {
         poolKeys: tokenAccount.poolKeys,
@@ -375,6 +390,7 @@ async function buy(accountId: PublicKey, accountData: LiquidityStateV4): Promise
     const latestBlockhash = await solanaConnection.getLatestBlockhash({
       commitment: COMMITMENT_LEVEL,
     });
+
     const messageV0 = new TransactionMessage({
       payerKey: wallet.publicKey,
       recentBlockhash: latestBlockhash.blockhash,
@@ -413,6 +429,7 @@ async function buy(accountId: PublicKey, accountData: LiquidityStateV4): Promise
         },
         `Confirmed buy tx`,
       );
+
     } else {
       logger.debug(confirmation.value.err);
       logger.info({ mint: accountData.baseMint, signature }, `Error confirming buy tx`);
@@ -448,7 +465,7 @@ const urlsol: string = `https://public-api.birdeye.so/defi/price?address=${addre
   }
   const solValuePromise = getTokenPrice(urlsol);
   const tokenValuePromise = getTokenPrice(urltoken);
-  await new Promise (resolve => setTimeout(resolve,15000))
+  await new Promise (resolve => setTimeout(resolve,5000))
 
   const solValue = await solValuePromise;
   const tokenValue = await tokenValuePromise;
@@ -467,22 +484,21 @@ async function sell( accountId: PublicKey,mint: PublicKey, amount: BigNumberish)
   let sold = false;
   let retries = 0;
   let remainingAmount = amount; 
-  console.log(amount)
   let totalProfit = 0;
   let totalLoss = 0 ;
+
+  const purchasePrice = Number(purchaseRecords[mint.toString()])
   // Définir les seuils de vente et pourcentages de sortie
   const exitLevels = [
-    { threshold: 1.04, percentage: 10 },  // Seuil 1: +10% de gain, vendre 10%
+    { threshold: 0.04, percentage: 10 },  // Seuil 1: +10% de gain, vendre 10%
    // { threshold: 1.02, percentage: 15 },  // Seuil 2: +20% de gain, vendre 15% 
    // { threshold: 1.05, percentage: 25 },  // Seuil 3: +50% de gain, vendre 25%
    // { threshold: 1.10, percentage: 50 }   // Seuil 4: +100% de gain, vendre 50% du reste
   ];
 
   // Récupérer le prix d'achat initial
-  const purchasePrice = Number(QUOTE_AMOUNT)/Number(amount); // à remplacer par la vraie valeur
+  //const purchasePrice = Number(QUOTE_AMOUNT)/Number(amount); // à remplacer par la vraie valeur
 
-  console.log(Number(QUOTE_AMOUNT))
-  console.log(Number(amount))
   if (AUTO_SELL_DELAY > 0) {
     await new Promise((resolve) => setTimeout(resolve, AUTO_SELL_DELAY));
   }
@@ -509,12 +525,14 @@ async function sell( accountId: PublicKey,mint: PublicKey, amount: BigNumberish)
     console.log(`Current gain: ${(currentGain * 100)}% mint : ${mint}`);  // Log the current gain percentage
     
     for (const level of exitLevels) {
-  if (currentGain >= level.threshold) {
-    const amountAsNumber = new BN(amount.toString()).toNumber();
-    const quantityToSell = Math.floor(amountAsNumber * (level.percentage / 100));
-    
-    const remainingAmountAsNumber = new BN(remainingAmount.toString()).toNumber();
-    remainingAmount = new BN(remainingAmountAsNumber - quantityToSell);
+
+      if (currentGain >= level.threshold) {
+        const amountAsNumber = new BN(amount.toString()).toNumber();
+        const quantityToSell = Math.floor(amountAsNumber * (level.percentage / 100));
+
+        console.log("quantityToSell: ",quantityToSell)
+        const remainingAmountAsNumber = new BN(remainingAmount.toString()).toNumber();
+        remainingAmount = new BN(remainingAmountAsNumber - quantityToSell);
 
       const { innerTransaction } = Liquidity.makeSwapFixedInInstruction(
         {
@@ -684,7 +702,7 @@ const runListener = async () => {
   if (AUTO_SELL) {
     const walletSubscriptionId = solanaConnection.onProgramAccountChange(
       TOKEN_PROGRAM_ID,
-      async (updatedAccountInfo) => {
+          async (updatedAccountInfo) => {
         const accountData = AccountLayout.decode(updatedAccountInfo.accountInfo!.data);
 
         if (updatedAccountInfo.accountId.equals(quoteTokenAssociatedAddress)) {
